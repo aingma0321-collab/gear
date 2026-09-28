@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoreEngine Heavy Mechanical Clock</title>
+    <title>CoreEngine Heavy Mechanical Clock (Steel Theme)</title>
     <style>
-        /* 갈색 기계실 배경 */
+        /* 새로 주신 기계 배경 이미지 적용 + 약간의 어두운 음영 추가로 가독성 확보 */
         body {
             margin: 0;
             height: 100vh;
-            background-color: #2b170b;
-            background-image: radial-gradient(circle at center, #4a2e15 0%, #170b04 100%);
-            color: #ffb300; /* 황동색 텍스트 */
+            background-color: #111;
+            background-image: 
+                radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%),
+                url('1000000118.png');
+            background-size: cover;
+            background-position: center;
+            color: #e0e0e0;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             display: flex;
@@ -20,7 +24,7 @@
             align-items: center;
         }
 
-        /* 공통 기어 클래스 */
+        /* 50개의 움직이는 개별 톱니바퀴 부품 */
         .gear {
             position: absolute;
             background-image: url('1000000117.png');
@@ -29,20 +33,19 @@
             border-radius: 50%;
         }
 
-        /* 1. 배경을 꽉 채우는 50개의 스텝 모션 기어들 */
+        /* 배경에서 돌아가는 50개의 스텝 모션 기어들 */
         #background-gears {
             position: absolute;
             width: 100vw;
             height: 100vh;
             z-index: 1;
             pointer-events: none;
-            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.9));
         }
         @keyframes tick-cw { 100% { transform: rotate(360deg); } }
         @keyframes tick-ccw { 100% { transform: rotate(-360deg); } }
-        /* JS에서 50개가 동적으로 생성됩니다 */
 
-        /* 2. 전면부 대시보드 인터페이스 */
+        /* 전면부 대시보드 인터페이스 */
         #dashboard {
             position: relative;
             z-index: 10;
@@ -54,49 +57,48 @@
             max-width: 600px;
         }
 
-        /* 중앙 전자시계 */
+        /* 중앙 전자시계 (회색 강철 프레임) */
         #digital-clock {
-            background: linear-gradient(145deg, #2a180c, #160c05);
+            background: linear-gradient(145deg, #2a2a2a, #111111);
             padding: 15px 40px;
-            border: 4px solid #8b5a2b;
+            border: 4px solid #666666;
             border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(255, 179, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.9), inset 0 0 15px rgba(255, 255, 255, 0.1);
             font-size: 3.5rem;
             font-weight: 900;
-            text-shadow: 0 0 10px #ffb300;
+            color: #ffffff;
+            text-shadow: 0 0 10px #bbbbbb;
             letter-spacing: 4px;
         }
 
-        /* 절반이 가려진 메인 날짜 기어들 (Aperture Windows) */
+        /* 절반이 가려진 메인 날짜 기어들 */
         .gears-row {
             display: flex;
             gap: 20px;
         }
 
+        /* 케이스(덮개)를 회색(Gray) 강철 느낌으로 변경 */
         .half-window {
             width: 140px;
-            height: 70px; /* 창문 높이를 너비의 절반으로 설정하여 밑반원만 보이게 함 */
+            height: 70px; 
             position: relative;
             background: #000;
-            border: 5px solid #6b4226;
-            border-top: 8px solid #a66a38; /* 위에 두꺼운 덮개 느낌 */
-            border-radius: 0 0 70px 70px; /* 완벽한 반원 형태 */
-            box-shadow: inset 0 15px 15px rgba(0,0,0,0.9), 0 10px 15px rgba(0,0,0,0.7);
+            border: 5px solid #4d4d4d; /* 짙은 회색 테두리 */
+            border-top: 8px solid #8c8c8c; /* 밝은 회색 상단 덮개 */
+            border-radius: 0 0 70px 70px;
+            box-shadow: inset 0 15px 15px rgba(0,0,0,0.9), 0 10px 15px rgba(0,0,0,0.8);
             overflow: hidden;
         }
 
-        /* 텍스트가 똑바로 서도록 배경 이미지만 돌리기 위한 래퍼 */
         .main-gear {
             width: 140px;
             height: 140px;
             position: absolute;
-            top: -70px; /* 위쪽 절반을 창문 밖으로 밀어내어 가림 */
+            top: -70px;
             left: 0;
-            /* 앱이 켜질 때 톱니가 철컥! 하고 제자리를 찾는 기계적 애니메이션 */
             animation: snap-advance 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
 
-        /* 4개의 이빨이 하단에 예쁘게 배치되도록 이미지 자체를 22.5도 비틂 */
         .main-gear::before {
             content: "";
             position: absolute;
@@ -109,8 +111,8 @@
         }
 
         @keyframes snap-advance {
-            0% { transform: rotate(-45deg); } /* 하루 전(어제) 각도에서 시작 */
-            100% { transform: rotate(0deg); } /* 오늘 위치로 탄력있게 안착 */
+            0% { transform: rotate(-45deg); } 
+            100% { transform: rotate(0deg); } 
         }
 
         /* 기어 위에 새겨질 텍스트 */
@@ -120,24 +122,24 @@
             z-index: 2;
             font-size: 16px;
             font-weight: 900;
-            color: #885533; /* 기본 음각 색상 */
+            color: #666666; /* 기본 음각 색상 (짙은 회색) */
             text-shadow: 1px 1px 2px #000;
         }
         
-        /* '오늘'을 가리키는 텍스트는 밝게 빛남 */
+        /* '오늘'을 가리키는 텍스트는 밝은 흰색으로 빛남 */
         .highlight-text {
-            color: #ffcc00;
-            text-shadow: 0 0 8px #ffcc00, 1px 1px 2px #000;
+            color: #ffffff;
+            text-shadow: 0 0 8px #ffffff, 1px 1px 2px #000;
         }
 
-        /* 오늘 위치(202.5도)를 가리키는 금속 화살표 포인터 */
+        /* 오늘 위치를 가리키는 빨간색 포인터 유지 (포인트 컬러) */
         .pointer-container {
             position: absolute;
             top: 0; left: 50%;
             width: 2px;
             height: 70px;
             transform-origin: top center;
-            transform: rotate(22.5deg); /* 정확히 '오늘' 톱니를 향하도록 회전 */
+            transform: rotate(22.5deg); 
             z-index: 10;
         }
         .pointer-arrow {
@@ -151,12 +153,12 @@
             filter: drop-shadow(0 0 5px #ff0000);
         }
 
-        /* 하단 라벨 */
+        /* 하단 라벨 (회색톤) */
         .label {
             text-align: center;
             margin-top: 15px;
             font-weight: bold;
-            color: #a66a38;
+            color: #8c8c8c;
             letter-spacing: 2px;
             font-size: 0.9rem;
         }
@@ -164,17 +166,16 @@
 </head>
 <body>
 
-<!-- 1. 화면을 꽉 채우는 50개의 거친 톱니바퀴들 -->
+<!-- 화면을 꽉 채우는 50개의 거친 톱니바퀴들 -->
 <div id="background-gears"></div>
 
-<!-- 2. 전면 제어 패널 -->
+<!-- 전면 제어 패널 -->
 <div id="dashboard">
     <!-- 시계 -->
     <div id="digital-clock">00:00:00</div>
 
-    <!-- 절반이 가려진 3개의 톱니바퀴 창 (월, 일, 요일) -->
+    <!-- 절반이 가려진 3개의 강철 톱니바퀴 창 (월, 일, 요일) -->
     <div class="gears-row">
-        <!-- 월 기어 -->
         <div>
             <div class="half-window">
                 <div class="pointer-container"><div class="pointer-arrow"></div></div>
@@ -183,7 +184,6 @@
             <div class="label">MONTH</div>
         </div>
         
-        <!-- 일 기어 -->
         <div>
             <div class="half-window">
                 <div class="pointer-container"><div class="pointer-arrow"></div></div>
@@ -192,7 +192,6 @@
             <div class="label">DATE</div>
         </div>
 
-        <!-- 요일 기어 -->
         <div>
             <div class="half-window">
                 <div class="pointer-container"><div class="pointer-arrow"></div></div>
@@ -204,15 +203,12 @@
 </div>
 
 <script>
-    // ----------------------------------------------------
-    // 1. 50개의 배경 기계를 동적으로 생성하는 스크립트
-    // ----------------------------------------------------
+    // 50개의 배경 기계를 동적으로 생성
     const bgContainer = document.getElementById('background-gears');
     for (let i = 0; i < 50; i++) {
         let gear = document.createElement('div');
         gear.className = 'gear bg-gear';
         
-        // 크기, 위치, 속도, 투명도를 무작위로 부여하여 꽉 찬 기계실 연출
         let size = Math.floor(Math.random() * 120) + 40; 
         gear.style.width = size + 'px';
         gear.style.height = size + 'px';
@@ -220,7 +216,7 @@
         gear.style.top = (Math.random() * 110 - 5) + 'vh';
         
         let duration = Math.floor(Math.random() * 15) + 5;
-        let steps = Math.floor(Math.random() * 20) + 8; // 뚝뚝 끊기는 모션
+        let steps = Math.floor(Math.random() * 20) + 8; 
         let dir = Math.random() > 0.5 ? 'tick-cw' : 'tick-ccw';
         
         gear.style.animation = `${dir} ${duration}s steps(${steps}) infinite`;
@@ -229,24 +225,19 @@
         bgContainer.appendChild(gear);
     }
 
-    // ----------------------------------------------------
-    // 2. 시간 및 날짜 기어에 텍스트를 정밀하게 새기는 스크립트
-    // ----------------------------------------------------
+    // 날짜 텍스트 세팅
     const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-    // 하단 반원에 노출될 4개의 각도 (어제, 오늘, 내일, 모레)
     const angles = [247.5, 202.5, 157.5, 112.5]; 
 
     function buildDateGears() {
         const now = new Date();
         
-        // 기준일 배열 [어제, 오늘, 내일, 모레] 생성
         const dates = [
-            new Date(now.getTime() - 86400000),     // 어제 (좌측)
-            now,                                    // 오늘 (중앙 좌측 - 화살표 위치)
-            new Date(now.getTime() + 86400000),     // 내일 (중앙 우측)
-            new Date(now.getTime() + 86400000 * 2)  // 모레 (우측)
+            new Date(now.getTime() - 86400000),     
+            now,                                    
+            new Date(now.getTime() + 86400000),     
+            new Date(now.getTime() + 86400000 * 2)  
         ];
 
         document.getElementById('gear-month').innerHTML = '';
@@ -254,7 +245,7 @@
         document.getElementById('gear-day').innerHTML = '';
 
         dates.forEach((d, index) => {
-            const isToday = (index === 1); // 1번 인덱스가 '오늘'
+            const isToday = (index === 1); 
             const angle = angles[index];
 
             addTextToGear('gear-month', monthNames[d.getMonth()], angle, isToday);
@@ -263,7 +254,6 @@
         });
     }
 
-    // 기어 표면에 각도에 맞춰 텍스트를 배치하되, 글자는 똑바로 서있게 만듦
     function addTextToGear(gearId, text, angle, isToday) {
         const gear = document.getElementById(gearId);
         const el = document.createElement('div');
@@ -271,12 +261,10 @@
         if (isToday) el.classList.add('highlight-text');
         el.innerText = text;
         
-        // 각도만큼 뻗어나간 뒤, 글자가 뒤집히지 않도록 역회전(-angle)
         el.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-50px) rotate(-${angle}deg)`;
         gear.appendChild(el);
     }
 
-    // 시계 업데이트
     function updateClock() {
         const now = new Date();
         const h = String(now.getHours()).padStart(2, '0');
@@ -285,7 +273,6 @@
         document.getElementById('digital-clock').innerText = `${h}:${m}:${s}`;
     }
 
-    // 초기화 및 실행
     buildDateGears();
     setInterval(updateClock, 1000);
     updateClock();
