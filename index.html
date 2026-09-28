@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoreEngine Real Mechanical Clock</title>
+    <title>CoreEngine Heavy Mechanical Clock</title>
     <style>
-        /* 기본 배경 (어두운 기계실 내부) */
+        /* 갈색 기계실 배경 */
         body {
             margin: 0;
             height: 100vh;
-            background-color: #050505;
-            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
-            color: #00ffcc;
+            background-color: #2b170b;
+            background-image: radial-gradient(circle at center, #4a2e15 0%, #170b04 100%);
+            color: #ffb300; /* 황동색 텍스트 */
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
-        /* 톱니바퀴 기본 공통 속성 */
+        /* 공통 기어 클래스 */
         .gear {
             position: absolute;
             background-image: url('1000000117.png');
@@ -28,210 +29,266 @@
             border-radius: 50%;
         }
 
-        /* -------------------------------------------
-           배경: 끊임없이 멈칫거리며(철컥철컥) 돌아가는 기계 장치들 
-           (steps() 함수로 기계적 톱니 이동을 구현)
-           ------------------------------------------- */
-        #background-engine {
+        /* 1. 배경을 꽉 채우는 50개의 스텝 모션 기어들 */
+        #background-gears {
             position: absolute;
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            opacity: 0.35; /* 뒤에 있는 부품 느낌 */
             pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
         }
         @keyframes tick-cw { 100% { transform: rotate(360deg); } }
         @keyframes tick-ccw { 100% { transform: rotate(-360deg); } }
-        
-        .bg-gear-1 { width: 350px; height: 350px; top: -50px; left: -100px; animation: tick-cw 10s steps(40) infinite; opacity: 0.6; }
-        .bg-gear-2 { width: 280px; height: 280px; bottom: -80px; right: -50px; animation: tick-ccw 8s steps(30) infinite; opacity: 0.5; }
-        .bg-gear-3 { width: 180px; height: 180px; top: 40%; left: 10%; animation: tick-cw 5s steps(20) infinite; opacity: 0.7; }
-        .bg-gear-4 { width: 150px; height: 150px; bottom: 25%; left: 25%; animation: tick-ccw 4s steps(15) infinite; opacity: 0.8; }
-        .bg-gear-5 { width: 220px; height: 220px; top: 15%; right: 15%; animation: tick-cw 7s steps(25) infinite; opacity: 0.6; }
-        .bg-gear-6 { width: 120px; height: 120px; bottom: 45%; right: 25%; animation: tick-ccw 3s steps(12) infinite; opacity: 0.9; filter: brightness(1.5); }
-        .bg-gear-7 { width: 400px; height: 400px; top: 30%; left: 30%; animation: tick-ccw 15s steps(60) infinite; opacity: 0.3; }
-        .bg-gear-8 { width: 100px; height: 100px; top: 10%; left: 40%; animation: tick-cw 2s steps(8) infinite; opacity: 1; filter: brightness(1.2); }
+        /* JS에서 50개가 동적으로 생성됩니다 */
 
-        /* -------------------------------------------
-           전경: 실제 날짜 데이터를 가리키는 거대한 메인 3대 기어
-           ------------------------------------------- */
-        #foreground-engine {
+        /* 2. 전면부 대시보드 인터페이스 */
+        #dashboard {
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            max-width: 500px;
             z-index: 10;
-        }
-
-        /* 메인 기어 컨테이너 (위치 잡기용) */
-        .main-gear-box {
-            position: absolute;
-            width: 240px; 
-            height: 240px;
-            /* 디자인 입체감을 위한 그림자 */
-            filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.8)); 
-        }
-
-        /* 메인 기어 위치 배치 (서로 겹치도록 배치하여 맞물린 느낌 극대화) */
-        #box-month { top: 8%; left: -10%; z-index: 12; }
-        #box-date { top: 22%; right: -15%; z-index: 11; }
-        #box-day { bottom: 12%; left: 50%; transform: translateX(-50%); z-index: 13; }
-
-        /* 메인 기어 회전체 (날짜 바뀔 때마다 스프링처럼 철컥! 넘어가게 세팅) */
-        .main-gear {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
             width: 100%;
-            height: 100%;
-            transition: transform 1s cubic-bezier(0.5, 2.5, 0.4, 0.8); 
+            max-width: 600px;
         }
 
-        /* 현재 날짜를 가리키는 빨간색 포인터 (화살표) */
-        .indicator {
+        /* 중앙 전자시계 */
+        #digital-clock {
+            background: linear-gradient(145deg, #2a180c, #160c05);
+            padding: 15px 40px;
+            border: 4px solid #8b5a2b;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(255, 179, 0, 0.2);
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px #ffb300;
+            letter-spacing: 4px;
+        }
+
+        /* 절반이 가려진 메인 날짜 기어들 (Aperture Windows) */
+        .gears-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .half-window {
+            width: 140px;
+            height: 70px; /* 창문 높이를 너비의 절반으로 설정하여 밑반원만 보이게 함 */
+            position: relative;
+            background: #000;
+            border: 5px solid #6b4226;
+            border-top: 8px solid #a66a38; /* 위에 두꺼운 덮개 느낌 */
+            border-radius: 0 0 70px 70px; /* 완벽한 반원 형태 */
+            box-shadow: inset 0 15px 15px rgba(0,0,0,0.9), 0 10px 15px rgba(0,0,0,0.7);
+            overflow: hidden;
+        }
+
+        /* 텍스트가 똑바로 서도록 배경 이미지만 돌리기 위한 래퍼 */
+        .main-gear {
+            width: 140px;
+            height: 140px;
             position: absolute;
-            top: -15px; /* 기어 최상단 12시 방향 */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0; 
-            height: 0; 
-            border-left: 12px solid transparent;
-            border-right: 12px solid transparent;
-            border-top: 20px solid #ff003c;
-            z-index: 20;
-            filter: drop-shadow(0 0 8px #ff003c);
+            top: -70px; /* 위쪽 절반을 창문 밖으로 밀어내어 가림 */
+            left: 0;
+            /* 앱이 켜질 때 톱니가 철컥! 하고 제자리를 찾는 기계적 애니메이션 */
+            animation: snap-advance 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
 
-        /* 기어 톱니 위에 동그랗게 새겨질 텍스트(숫자/영문) */
+        /* 4개의 이빨이 하단에 예쁘게 배치되도록 이미지 자체를 22.5도 비틂 */
+        .main-gear::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('1000000117.png');
+            background-size: cover;
+            transform: rotate(22.5deg);
+            z-index: 1;
+            opacity: 0.9;
+        }
+
+        @keyframes snap-advance {
+            0% { transform: rotate(-45deg); } /* 하루 전(어제) 각도에서 시작 */
+            100% { transform: rotate(0deg); } /* 오늘 위치로 탄력있게 안착 */
+        }
+
+        /* 기어 위에 새겨질 텍스트 */
         .dial-text {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform-origin: center;
-            color: #d1d5db;
+            top: 50%; left: 50%;
+            z-index: 2;
             font-size: 16px;
             font-weight: 900;
-            text-shadow: 2px 2px 4px #000;
+            color: #885533; /* 기본 음각 색상 */
+            text-shadow: 1px 1px 2px #000;
+        }
+        
+        /* '오늘'을 가리키는 텍스트는 밝게 빛남 */
+        .highlight-text {
+            color: #ffcc00;
+            text-shadow: 0 0 8px #ffcc00, 1px 1px 2px #000;
         }
 
-        /* -------------------------------------------
-           중앙: 심장부 전자시계
-           ------------------------------------------- */
-        #digital-clock {
+        /* 오늘 위치(202.5도)를 가리키는 금속 화살표 포인터 */
+        .pointer-container {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 50;
-            background: rgba(5, 5, 10, 0.85);
-            padding: 20px 35px;
-            border: 3px solid #00ffcc;
-            border-radius: 12px;
-            box-shadow: 0 0 25px #00ffcc, inset 0 0 10px #00ffcc;
-            font-size: 3rem;
+            top: 0; left: 50%;
+            width: 2px;
+            height: 70px;
+            transform-origin: top center;
+            transform: rotate(22.5deg); /* 정확히 '오늘' 톱니를 향하도록 회전 */
+            z-index: 10;
+        }
+        .pointer-arrow {
+            position: absolute;
+            bottom: 2px;
+            left: -8px;
+            width: 0; height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid #ff3333;
+            filter: drop-shadow(0 0 5px #ff0000);
+        }
+
+        /* 하단 라벨 */
+        .label {
+            text-align: center;
+            margin-top: 15px;
             font-weight: bold;
-            backdrop-filter: blur(8px);
+            color: #a66a38;
             letter-spacing: 2px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-<!-- 1. 끝없이 돌아가는 배경 기계 장치들 -->
-<div id="background-engine">
-    <div class="gear bg-gear-1"></div>
-    <div class="gear bg-gear-2"></div>
-    <div class="gear bg-gear-3"></div>
-    <div class="gear bg-gear-4"></div>
-    <div class="gear bg-gear-5"></div>
-    <div class="gear bg-gear-6"></div>
-    <div class="gear bg-gear-7"></div>
-    <div class="gear bg-gear-8"></div>
-</div>
+<!-- 1. 화면을 꽉 채우는 50개의 거친 톱니바퀴들 -->
+<div id="background-gears"></div>
 
-<!-- 2. 날짜를 표시하는 메인 시스템 -->
-<div id="foreground-engine">
-    
-    <!-- 중앙 전자시계 -->
+<!-- 2. 전면 제어 패널 -->
+<div id="dashboard">
+    <!-- 시계 -->
     <div id="digital-clock">00:00:00</div>
 
-    <!-- 월(Month) 기어 -->
-    <div class="main-gear-box" id="box-month">
-        <div class="indicator"></div> <!-- 12시 방향 화살표 -->
-        <div class="gear main-gear" id="gear-month"></div>
-    </div>
+    <!-- 절반이 가려진 3개의 톱니바퀴 창 (월, 일, 요일) -->
+    <div class="gears-row">
+        <!-- 월 기어 -->
+        <div>
+            <div class="half-window">
+                <div class="pointer-container"><div class="pointer-arrow"></div></div>
+                <div class="main-gear" id="gear-month"></div>
+            </div>
+            <div class="label">MONTH</div>
+        </div>
+        
+        <!-- 일 기어 -->
+        <div>
+            <div class="half-window">
+                <div class="pointer-container"><div class="pointer-arrow"></div></div>
+                <div class="main-gear" id="gear-date"></div>
+            </div>
+            <div class="label">DATE</div>
+        </div>
 
-    <!-- 일(Date) 기어 -->
-    <div class="main-gear-box" id="box-date">
-        <div class="indicator"></div>
-        <div class="gear main-gear" id="gear-date"></div>
+        <!-- 요일 기어 -->
+        <div>
+            <div class="half-window">
+                <div class="pointer-container"><div class="pointer-arrow"></div></div>
+                <div class="main-gear" id="gear-day"></div>
+            </div>
+            <div class="label">DAY</div>
+        </div>
     </div>
-
-    <!-- 요일(Day) 기어 -->
-    <div class="main-gear-box" id="box-day">
-        <div class="indicator"></div>
-        <div class="gear main-gear" id="gear-day"></div>
-    </div>
-
 </div>
 
 <script>
-    // 날짜 데이터 세팅
+    // ----------------------------------------------------
+    // 1. 50개의 배경 기계를 동적으로 생성하는 스크립트
+    // ----------------------------------------------------
+    const bgContainer = document.getElementById('background-gears');
+    for (let i = 0; i < 50; i++) {
+        let gear = document.createElement('div');
+        gear.className = 'gear bg-gear';
+        
+        // 크기, 위치, 속도, 투명도를 무작위로 부여하여 꽉 찬 기계실 연출
+        let size = Math.floor(Math.random() * 120) + 40; 
+        gear.style.width = size + 'px';
+        gear.style.height = size + 'px';
+        gear.style.left = (Math.random() * 110 - 5) + 'vw';
+        gear.style.top = (Math.random() * 110 - 5) + 'vh';
+        
+        let duration = Math.floor(Math.random() * 15) + 5;
+        let steps = Math.floor(Math.random() * 20) + 8; // 뚝뚝 끊기는 모션
+        let dir = Math.random() > 0.5 ? 'tick-cw' : 'tick-ccw';
+        
+        gear.style.animation = `${dir} ${duration}s steps(${steps}) infinite`;
+        gear.style.opacity = (Math.random() * 0.4 + 0.1).toFixed(2);
+        
+        bgContainer.appendChild(gear);
+    }
+
+    // ----------------------------------------------------
+    // 2. 시간 및 날짜 기어에 텍스트를 정밀하게 새기는 스크립트
+    // ----------------------------------------------------
     const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-    // 1일부터 31일까지 배열 생성
-    const dates = Array.from({length: 31}, (_, i) => i + 1);
 
-    // 톱니바퀴 표면에 텍스트를 둥글게 배치하는 함수
-    function buildGearDial(gearId, items) {
-        const gear = document.getElementById(gearId);
-        const radius = 85; // 텍스트가 새겨질 원의 반지름 (기어 크기에 맞춤)
-        const angleStep = 360 / items.length; // 항목 개수만큼 각도 분할
+    // 하단 반원에 노출될 4개의 각도 (어제, 오늘, 내일, 모레)
+    const angles = [247.5, 202.5, 157.5, 112.5]; 
+
+    function buildDateGears() {
+        const now = new Date();
         
-        items.forEach((item, index) => {
-            const el = document.createElement('div');
-            el.className = 'dial-text';
-            el.innerText = item;
-            
-            // 중앙(50%,50%)을 기준으로 각도만큼 회전한 후, 바깥쪽(radius)으로 밀어냄
-            el.style.transform = `translate(-50%, -50%) rotate(${index * angleStep}deg) translateY(-${radius}px)`;
-            gear.appendChild(el);
+        // 기준일 배열 [어제, 오늘, 내일, 모레] 생성
+        const dates = [
+            new Date(now.getTime() - 86400000),     // 어제 (좌측)
+            now,                                    // 오늘 (중앙 좌측 - 화살표 위치)
+            new Date(now.getTime() + 86400000),     // 내일 (중앙 우측)
+            new Date(now.getTime() + 86400000 * 2)  // 모레 (우측)
+        ];
+
+        document.getElementById('gear-month').innerHTML = '';
+        document.getElementById('gear-date').innerHTML = '';
+        document.getElementById('gear-day').innerHTML = '';
+
+        dates.forEach((d, index) => {
+            const isToday = (index === 1); // 1번 인덱스가 '오늘'
+            const angle = angles[index];
+
+            addTextToGear('gear-month', monthNames[d.getMonth()], angle, isToday);
+            addTextToGear('gear-date', d.getDate(), angle, isToday);
+            addTextToGear('gear-day', dayNames[d.getDay()], angle, isToday);
         });
     }
 
-    // 3대 메인 기어 조립 (숫자/글자 새기기)
-    buildGearDial('gear-month', monthNames);
-    buildGearDial('gear-date', dates);
-    buildGearDial('gear-day', dayNames);
-
-    // 시간 업데이트 및 기어 회전 함수
-    function updateEngine() {
-        const now = new Date();
+    // 기어 표면에 각도에 맞춰 텍스트를 배치하되, 글자는 똑바로 서있게 만듦
+    function addTextToGear(gearId, text, angle, isToday) {
+        const gear = document.getElementById(gearId);
+        const el = document.createElement('div');
+        el.className = 'dial-text';
+        if (isToday) el.classList.add('highlight-text');
+        el.innerText = text;
         
-        // 1. 심장부 전자시계 업데이트
+        // 각도만큼 뻗어나간 뒤, 글자가 뒤집히지 않도록 역회전(-angle)
+        el.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-50px) rotate(-${angle}deg)`;
+        gear.appendChild(el);
+    }
+
+    // 시계 업데이트
+    function updateClock() {
+        const now = new Date();
         const h = String(now.getHours()).padStart(2, '0');
         const m = String(now.getMinutes()).padStart(2, '0');
         const s = String(now.getSeconds()).padStart(2, '0');
         document.getElementById('digital-clock').innerText = `${h}:${m}:${s}`;
-
-        // 2. 메인 기어들 회전 (현재 날짜가 화살표(상단)에 오도록 역방향으로 각도 계산)
-        
-        // 월 (0~11 인덱스)
-        const monthAngle = -(now.getMonth() * (360 / 12));
-        document.getElementById('gear-month').style.transform = `rotate(${monthAngle}deg)`;
-        
-        // 일 (1~31 -> 인덱스 0~30 계산)
-        const dateAngle = -((now.getDate() - 1) * (360 / 31));
-        document.getElementById('gear-date').style.transform = `rotate(${dateAngle}deg)`;
-        
-        // 요일 (0~6 인덱스, 0=일요일)
-        const dayAngle = -(now.getDay() * (360 / 7));
-        document.getElementById('gear-day').style.transform = `rotate(${dayAngle}deg)`;
     }
 
-    // 1초(1000ms)마다 엔진 가동
-    setInterval(updateEngine, 1000);
-    
-    // 앱 켜자마자 즉시 시간 동기화 (기어들이 철컥! 하며 제자리를 찾아감)
-    // 약간의 딜레이를 주어 사용자가 접속하자마자 기계가 맞춰지는 애니메이션을 감상하게 함
-    setTimeout(updateEngine, 100); 
+    // 초기화 및 실행
+    buildDateGears();
+    setInterval(updateClock, 1000);
+    updateClock();
 </script>
 
 </body>
