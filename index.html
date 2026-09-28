@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreEngine Gear Clock</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #121212; /* 어두운 기계실 느낌의 배경 */
+            color: #00ffcc; /* 사이버틱한 네온 색상 */
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+        .machine-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+        /* 공통 기어 속성 (이미지를 그대로 사용) */
+        .gear {
+            position: absolute;
+            background-image: url('1000000117.png');
+            background-size: cover;
+            border-radius: 50%;
+        }
+        /* 메인 기어 (중앙) */
+        .main-gear {
+            width: 200px;
+            height: 200px;
+            top: 100px;
+            left: 100px;
+            animation: spin-right 20s linear infinite; /* 시계 방향 회전 */
+        }
+        /* 서브 기어 (코너) */
+        .sub-gear {
+            width: 120px;
+            height: 120px;
+            animation: spin-left 12s linear infinite; /* 반시계 방향 회전 (맞물림 효과) */
+        }
+        /* 서브 기어의 텍스트가 같이 돌아가지 않도록 감싸는 래퍼 */
+        .sub-gear-wrapper {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        /* 코너 배치 */
+        #month-gear { top: 20px; left: 20px; }
+        #date-gear { top: 20px; right: 20px; }
+        #day-gear { bottom: 20px; left: 140px; }
+
+        /* 기어 위 글씨 속성 */
+        .gear-text {
+            position: absolute;
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px #000, 0 0 10px #00ffcc;
+            z-index: 10;
+        }
+        /* 중앙 전자시계 */
+        .digital-clock {
+            position: absolute;
+            top: 175px;
+            left: 100px;
+            width: 200px;
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffcc;
+            z-index: 20;
+        }
+
+        /* 회전 애니메이션 */
+        @keyframes spin-right { 100% { transform: rotate(360deg); } }
+        @keyframes spin-left { 100% { transform: rotate(-360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="machine-container">
+    <!-- 메인 톱니바퀴 & 시계 -->
+    <div class="gear main-gear"></div>
+    <div class="digital-clock" id="clock">00:00:00</div>
+
+    <!-- 월(Month) 톱니바퀴 (좌측 상단) -->
+    <div class="sub-gear-wrapper" id="month-gear">
+        <div class="gear sub-gear"></div>
+        <div class="gear-text" id="month-text">MTH</div>
+    </div>
+
+    <!-- 일(Date) 톱니바퀴 (우측 상단) -->
+    <div class="sub-gear-wrapper" id="date-gear">
+        <div class="gear sub-gear"></div>
+        <div class="gear-text" id="date-text">00</div>
+    </div>
+
+    <!-- 요일(Day) 톱니바퀴 (하단 중앙) -->
+    <div class="sub-gear-wrapper" id="day-gear">
+        <div class="gear sub-gear"></div>
+        <div class="gear-text" id="day-text">DAY</div>
+    </div>
+</div>
+
+<script>
+    const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+    function updateTime() {
+        const now = new Date();
+        
+        // 시, 분, 초 업데이트 (가운데)
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+        // 월, 일, 요일 업데이트 (코너 톱니바퀴)
+        document.getElementById('month-text').textContent = monthNames[now.getMonth()];
+        document.getElementById('date-text').textContent = now.getDate();
+        document.getElementById('day-text').textContent = dayNames[now.getDay()];
+    }
+
+    setInterval(updateTime, 1000); // 1초마다 갱신
+    updateTime(); // 시작 즉시 실행
+</script>
+
+</body>
+</html>
