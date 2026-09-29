@@ -3,28 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CoreEngine Heavy Mechanical Clock (Steel Theme)</title>
+    <title>CoreEngine Clock & Train View</title>
     <style>
-        /* 새로 주신 기계 배경 이미지 적용 + 약간의 어두운 음영 추가로 가독성 확보 */
-        body {
+        /* 기본 설정 */
+        body, html {
             margin: 0;
-            height: 100vh;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 스크롤바 숨김 */
             background-color: #111;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* 전체 화면을 감싸는 슬라이더 (2개의 페이지를 가로로 배치) */
+        #app-slider {
+            display: flex;
+            width: 200vw; /* 2개의 화면 너비 */
+            height: 100vh;
+            transition: transform 0.5s ease-in-out; /* 슬라이드 애니메이션 */
+        }
+
+        /* 각 페이지 공통 속성 */
+        .page {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ========================================================
+           [페이지 1] 기존 기계 시계 화면 (Steel Theme)
+           ======================================================== */
+        #page-clock {
             background-image: 
                 radial-gradient(circle at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%),
                 url('1000000118.png');
             background-size: cover;
             background-position: center;
-            color: #e0e0e0;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
-        /* 50개의 움직이는 개별 톱니바퀴 부품 */
         .gear {
             position: absolute;
             background-image: url('1000000117.png');
@@ -33,19 +55,17 @@
             border-radius: 50%;
         }
 
-        /* 배경에서 돌아가는 50개의 스텝 모션 기어들 */
         #background-gears {
             position: absolute;
-            width: 100vw;
-            height: 100vh;
+            width: 100%; height: 100%;
             z-index: 1;
             pointer-events: none;
             filter: drop-shadow(0 0 15px rgba(0,0,0,0.9));
         }
+        
         @keyframes tick-cw { 100% { transform: rotate(360deg); } }
         @keyframes tick-ccw { 100% { transform: rotate(-360deg); } }
 
-        /* 전면부 대시보드 인터페이스 */
         #dashboard {
             position: relative;
             z-index: 10;
@@ -57,7 +77,6 @@
             max-width: 600px;
         }
 
-        /* 중앙 전자시계 (회색 강철 프레임) */
         #digital-clock {
             background: linear-gradient(145deg, #2a2a2a, #111111);
             padding: 15px 40px;
@@ -71,31 +90,23 @@
             letter-spacing: 4px;
         }
 
-        /* 절반이 가려진 메인 날짜 기어들 */
-        .gears-row {
-            display: flex;
-            gap: 20px;
-        }
+        .gears-row { display: flex; gap: 20px; }
 
-        /* 케이스(덮개)를 회색(Gray) 강철 느낌으로 변경 */
         .half-window {
-            width: 140px;
-            height: 70px; 
+            width: 140px; height: 70px; 
             position: relative;
             background: #000;
-            border: 5px solid #4d4d4d; /* 짙은 회색 테두리 */
-            border-top: 8px solid #8c8c8c; /* 밝은 회색 상단 덮개 */
+            border: 5px solid #4d4d4d;
+            border-top: 8px solid #8c8c8c;
             border-radius: 0 0 70px 70px;
             box-shadow: inset 0 15px 15px rgba(0,0,0,0.9), 0 10px 15px rgba(0,0,0,0.8);
             overflow: hidden;
         }
 
         .main-gear {
-            width: 140px;
-            height: 140px;
+            width: 140px; height: 140px;
             position: absolute;
-            top: -70px;
-            left: 0;
+            top: -70px; left: 0;
             animation: snap-advance 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
 
@@ -110,144 +121,160 @@
             opacity: 0.9;
         }
 
-        @keyframes snap-advance {
-            0% { transform: rotate(-45deg); } 
-            100% { transform: rotate(0deg); } 
-        }
+        @keyframes snap-advance { 0% { transform: rotate(-45deg); } 100% { transform: rotate(0deg); } }
 
-        /* 기어 위에 새겨질 텍스트 */
         .dial-text {
-            position: absolute;
-            top: 50%; left: 50%;
-            z-index: 2;
-            font-size: 16px;
-            font-weight: 900;
-            color: #666666; /* 기본 음각 색상 (짙은 회색) */
+            position: absolute; top: 50%; left: 50%; z-index: 2;
+            font-size: 16px; font-weight: 900; color: #666666;
             text-shadow: 1px 1px 2px #000;
         }
         
-        /* '오늘'을 가리키는 텍스트는 밝은 흰색으로 빛남 */
-        .highlight-text {
-            color: #ffffff;
-            text-shadow: 0 0 8px #ffffff, 1px 1px 2px #000;
-        }
+        .highlight-text { color: #ffffff; text-shadow: 0 0 8px #ffffff, 1px 1px 2px #000; }
 
-        /* 오늘 위치를 가리키는 빨간색 포인터 유지 (포인트 컬러) */
         .pointer-container {
-            position: absolute;
-            top: 0; left: 50%;
-            width: 2px;
-            height: 70px;
-            transform-origin: top center;
-            transform: rotate(22.5deg); 
-            z-index: 10;
+            position: absolute; top: 0; left: 50%;
+            width: 2px; height: 70px; transform-origin: top center; transform: rotate(22.5deg); z-index: 10;
         }
         .pointer-arrow {
-            position: absolute;
-            bottom: 2px;
-            left: -8px;
-            width: 0; height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 12px solid #ff3333;
-            filter: drop-shadow(0 0 5px #ff0000);
+            position: absolute; bottom: 2px; left: -8px;
+            width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 12px solid #ff3333; filter: drop-shadow(0 0 5px #ff0000);
         }
 
-        /* 하단 라벨 (회색톤) */
-        .label {
+        .label { text-align: center; margin-top: 15px; font-weight: bold; color: #8c8c8c; letter-spacing: 2px; font-size: 0.9rem; }
+
+
+        /* ========================================================
+           [페이지 2] 기차 창문 풍경 화면
+           ======================================================== */
+        #page-train {
+            background-color: #87CEEB; /* 하늘색 배경 기본값 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 무한 스크롤되는 들판 배경 (1번 그림) */
+        #train-scenery {
+            position: absolute;
+            top: 0; left: 0;
+            width: 200%; /* 이미지가 2장 이어지도록 2배 너비 */
+            height: 100%;
+            background-image: url('1000000124.png');
+            background-size: 50% 100%; /* 원본 비율 무시하고 꽉 채우려면 cover 대신 수동 설정 */
+            background-repeat: repeat-x;
+            animation: scroll-scenery 60s linear infinite; /* 아주 느리게 이동 */
+            z-index: 1;
+        }
+
+        @keyframes scroll-scenery {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); } /* 이미지 한 장 너비만큼 이동하면 리셋 */
+        }
+
+        /* 창문 프레임 (2번 그림) - 투명도가 있으므로 위에 덮어씌움 */
+        #train-window {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('1000000122.png');
+            background-size: 100% 100%; /* 화면에 꽉 차게 찌그러뜨림 (비율 유지 원하면 cover) */
+            background-position: center;
+            z-index: 10;
+            pointer-events: none; /* 터치는 뒤쪽으로 통과 */
+        }
+
+        /* 창문 덜컹거림 (진동) 애니메이션 클래스 */
+        .shake-window {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 1px, 0); }
+            20%, 80% { transform: translate3d(2px, -2px, 0); }
+            30%, 50%, 70% { transform: translate3d(-2px, 2px, 0); }
+            40%, 60% { transform: translate3d(2px, -1px, 0); }
+        }
+
+        /* 페이지 넘김 안내 텍스트 */
+        .swipe-hint {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
             text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #8c8c8c;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-<!-- 화면을 꽉 채우는 50개의 거친 톱니바퀴들 -->
-<div id="background-gears"></div>
-
-<!-- 전면 제어 패널 -->
-<div id="dashboard">
-    <!-- 시계 -->
-    <div id="digital-clock">00:00:00</div>
-
-    <!-- 절반이 가려진 3개의 강철 톱니바퀴 창 (월, 일, 요일) -->
-    <div class="gears-row">
-        <div>
-            <div class="half-window">
-                <div class="pointer-container"><div class="pointer-arrow"></div></div>
-                <div class="main-gear" id="gear-month"></div>
+<div id="app-slider">
+    
+    <!-- 1페이지: 시계 화면 -->
+    <div class="page" id="page-clock">
+        <div id="background-gears"></div>
+        <div id="dashboard">
+            <div id="digital-clock">00:00:00</div>
+            <div class="gears-row">
+                <div>
+                    <div class="half-window"><div class="pointer-container"><div class="pointer-arrow"></div></div><div class="main-gear" id="gear-month"></div></div>
+                    <div class="label">MONTH</div>
+                </div>
+                <div>
+                    <div class="half-window"><div class="pointer-container"><div class="pointer-arrow"></div></div><div class="main-gear" id="gear-date"></div></div>
+                    <div class="label">DATE</div>
+                </div>
+                <div>
+                    <div class="half-window"><div class="pointer-container"><div class="pointer-arrow"></div></div><div class="main-gear" id="gear-day"></div></div>
+                    <div class="label">DAY</div>
+                </div>
             </div>
-            <div class="label">MONTH</div>
         </div>
-        
-        <div>
-            <div class="half-window">
-                <div class="pointer-container"><div class="pointer-arrow"></div></div>
-                <div class="main-gear" id="gear-date"></div>
-            </div>
-            <div class="label">DATE</div>
-        </div>
-
-        <div>
-            <div class="half-window">
-                <div class="pointer-container"><div class="pointer-arrow"></div></div>
-                <div class="main-gear" id="gear-day"></div>
-            </div>
-            <div class="label">DAY</div>
-        </div>
+        <div class="swipe-hint">스와이프하여 창문 보기 ➡</div>
     </div>
+
+    <!-- 2페이지: 기차 창문 화면 -->
+    <div class="page" id="page-train">
+        <div id="train-scenery"></div>
+        <div id="train-window"></div>
+        <div class="swipe-hint">⬅ 스와이프하여 시계 보기</div>
+    </div>
+
 </div>
 
 <script>
-    // 50개의 배경 기계를 동적으로 생성
+    // ----------------------------------------------------
+    // [1] 시계 관련 로직 (이전과 동일)
+    // ----------------------------------------------------
     const bgContainer = document.getElementById('background-gears');
     for (let i = 0; i < 50; i++) {
         let gear = document.createElement('div');
         gear.className = 'gear bg-gear';
-        
         let size = Math.floor(Math.random() * 120) + 40; 
-        gear.style.width = size + 'px';
-        gear.style.height = size + 'px';
-        gear.style.left = (Math.random() * 110 - 5) + 'vw';
-        gear.style.top = (Math.random() * 110 - 5) + 'vh';
-        
+        gear.style.width = size + 'px'; gear.style.height = size + 'px';
+        gear.style.left = (Math.random() * 110 - 5) + 'vw'; gear.style.top = (Math.random() * 110 - 5) + 'vh';
         let duration = Math.floor(Math.random() * 15) + 5;
         let steps = Math.floor(Math.random() * 20) + 8; 
         let dir = Math.random() > 0.5 ? 'tick-cw' : 'tick-ccw';
-        
         gear.style.animation = `${dir} ${duration}s steps(${steps}) infinite`;
         gear.style.opacity = (Math.random() * 0.4 + 0.1).toFixed(2);
-        
         bgContainer.appendChild(gear);
     }
 
-    // 날짜 텍스트 세팅
     const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const angles = [247.5, 202.5, 157.5, 112.5]; 
 
     function buildDateGears() {
         const now = new Date();
-        
         const dates = [
-            new Date(now.getTime() - 86400000),     
-            now,                                    
-            new Date(now.getTime() + 86400000),     
-            new Date(now.getTime() + 86400000 * 2)  
+            new Date(now.getTime() - 86400000), now, new Date(now.getTime() + 86400000), new Date(now.getTime() + 86400000 * 2)  
         ];
-
-        document.getElementById('gear-month').innerHTML = '';
-        document.getElementById('gear-date').innerHTML = '';
-        document.getElementById('gear-day').innerHTML = '';
-
+        document.getElementById('gear-month').innerHTML = ''; document.getElementById('gear-date').innerHTML = ''; document.getElementById('gear-day').innerHTML = '';
         dates.forEach((d, index) => {
-            const isToday = (index === 1); 
-            const angle = angles[index];
-
+            const isToday = (index === 1); const angle = angles[index];
             addTextToGear('gear-month', monthNames[d.getMonth()], angle, isToday);
             addTextToGear('gear-date', d.getDate(), angle, isToday);
             addTextToGear('gear-day', dayNames[d.getDay()], angle, isToday);
@@ -260,22 +287,75 @@
         el.className = 'dial-text';
         if (isToday) el.classList.add('highlight-text');
         el.innerText = text;
-        
         el.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-50px) rotate(-${angle}deg)`;
         gear.appendChild(el);
     }
 
     function updateClock() {
         const now = new Date();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        const s = String(now.getSeconds()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0'); const s = String(now.getSeconds()).padStart(2, '0');
         document.getElementById('digital-clock').innerText = `${h}:${m}:${s}`;
     }
 
     buildDateGears();
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(updateClock, 1000); updateClock();
+
+    // ----------------------------------------------------
+    // [2] 기차 창문 진동 로직
+    // ----------------------------------------------------
+    const trainWindow = document.getElementById('train-window');
+    
+    function randomShake() {
+        // 창문에 진동 클래스 추가
+        trainWindow.classList.add('shake-window');
+        
+        // 애니메이션 끝나면 클래스 제거 (0.3초 후)
+        setTimeout(() => {
+            trainWindow.classList.remove('shake-window');
+        }, 300);
+
+        // 다음 진동까지의 시간을 랜덤하게 설정 (2초 ~ 4초 사이, 평균 3초)
+        const nextShakeTime = Math.random() * 2000 + 2000;
+        setTimeout(randomShake, nextShakeTime);
+    }
+    
+    // 최초 진동 시작
+    setTimeout(randomShake, 3000);
+
+
+    // ----------------------------------------------------
+    // [3] 모바일 화면 슬라이드(터치 스와이프) 로직
+    // ----------------------------------------------------
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let currentPage = 0; // 0: 시계, 1: 기차
+    const slider = document.getElementById('app-slider');
+
+    // 터치 시작 위치 저장
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+
+    // 터치 끝 위치 저장 및 슬라이드 판단
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+
+    function handleSwipe() {
+        const swipeDistance = touchStartX - touchEndX;
+        const threshold = 50; // 이 픽셀 이상 밀어야 슬라이드 인정
+
+        if (swipeDistance > threshold && currentPage === 0) {
+            // 왼쪽으로 스와이프 (오른쪽 화면 띄우기)
+            currentPage = 1;
+            slider.style.transform = `translateX(-100vw)`;
+        } else if (swipeDistance < -threshold && currentPage === 1) {
+            // 오른쪽으로 스와이프 (왼쪽 화면 띄우기)
+            currentPage = 0;
+            slider.style.transform = `translateX(0)`;
+        }
+    }
 </script>
 
 </body>
